@@ -10,6 +10,7 @@ cmd="${1}"; shift
 while (( "$#" )); do
   case "${1}" in
     --channel=*) channel=${1/--channel=/''}; shift ;;
+    --controls) controls='yes'; shift ;;
     --quality=*) quality=${1/--quality=/''}; shift ;;
     -c*) channel=${2}; shift; shift ;;
     -q*) quality=${2}; shift; shift ;;
@@ -53,7 +54,7 @@ function help() {
 
   echo 'Usage:'
   echo "  ${bin} channels"
-  echo "  ${bin} listen <channel> [--quality=<low|high|highest>]"
+  echo "  ${bin} listen <channel> [--quality=<low|high|highest>] [--controls]"
   echo
   echo 'Options:'
   echo '  quality    The listening quality (default: high)'
@@ -70,7 +71,13 @@ function listen() {
 
   case "${playlist}" in
     '') return 1 ;;
-    *) mpv --no-config "${playlist}" 2> /dev/null | awk '/title/ { s = ""; for (i = 2; i <= NF; i++) s = s $i " "; cmd="(date +'%H:%M:%S')"; cmd | getline d; print d,"|",s; close(cmd) }' ;;
+    *)
+      case "${controls}" in
+        'yes') mpv "${playlist}" ;;
+        *) mpv --no-config "${playlist}" 2> /dev/null | awk '/title/ { s = ""; for (i = 2; i <= NF; i++) s = s $i " "; cmd="(date +'%H:%M:%S')"; cmd | getline d; print d,"|",s; close(cmd) }' ;;
+      esac
+      shift
+    ;;
   esac
 }
 
